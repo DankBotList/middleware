@@ -123,6 +123,18 @@ func (s *Secure) Process(ctx context.Context) error {
 	if len(s.opt.AllowedHosts) > 0 && !s.opt.IsDevelopment {
 		isGoodHost := false
 		for _, allowedHost := range s.opt.AllowedHosts {
+			if strings.HasPrefix(allowedHost, "*") {
+				host := string(ctx.Host())
+				newAllowedHost := strings.TrimPrefix(allowedHost, "*")
+				index := strings.IndexRune(host, '.')
+				if index >= 0 && len(host) >= index {
+					hostMatchee := host[index:]
+					if newAllowedHost == hostMatchee {
+						isGoodHost = true
+						break
+					}
+				}
+			}
 			if strings.EqualFold(allowedHost, string(ctx.Host())) {
 				isGoodHost = true
 				break
